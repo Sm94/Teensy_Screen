@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include <FastLED.h>
-#include "alex.c"
 
 //only once choice here, it has to be pin17 as thats the only 5v pin on the teensy lc
 #define ControlPin 17
@@ -120,15 +119,19 @@ void bitmap_load_and_render(unsigned char *bitmap_data){
 /*
 Used to decode RLE pixel encoded bitmap
 REMEMBER TO FREE THE RETURN VALUE AFTER USE!!!!
+
+stil need to deal with padding to multiples of 4
 */
 unsigned char * decode_image(unsigned char *compressed_image_data, int length){
+  Serial.println("Compressed Data")
+  Serial.println(*compressed_image_data);
   unsigned char *image_data;
   image_data = (unsigned char *) malloc(length+1);
   if (image_data == NULL){return NULL;};
   unsigned char data;
   uint16_t position = 0;
   uint8_t rep_num = 1;
-  while (data != EOF){
+  while ((data = compressed_image_data[position]) != EOF){
     rep_num = 1;
     data = compressed_image_data[position];
     // compression signal
@@ -144,11 +147,16 @@ unsigned char * decode_image(unsigned char *compressed_image_data, int length){
       //might need to memcopy
       //dont change the position, it has to track for uncompressed!
       //red
-      unsigned char red = compressed_image_data[position];
+      unsigned char blue = compressed_image_data[position];
       //green
-      unsigned char blue = compressed_image_data[position + 1];
+      unsigned char green = compressed_image_data[position + 1];
      //blue
-      unsigned char green = compressed_image_data[position + 2];
+      unsigned char red = compressed_image_data[position + 2];
+
+      if (rep_num == 0){
+        // used to return on end of
+        return image_data;
+      }
 
       for (int i = 0; i < rep_num; i++){
         image_data[position] = red;
@@ -159,7 +167,8 @@ unsigned char * decode_image(unsigned char *compressed_image_data, int length){
         position++;
       }
 
-      data = compressed_image_data[position];
   }
+  Serial.println("Uncompressed Data")
+  Serial.println(*image_data);
   return image_data;
 }
