@@ -40,11 +40,11 @@ def compress(data):
     current_pixel = None
     count = 0
     compressed_data = bytearray()
-    for pixel in pixels:
+    for i,pixel in enumerate(pixels):
         if current_pixel == None:
             current_pixel = pixel
-        if current_pixel != pixel or count >= 254:
-            if count > 1:
+        if current_pixel != pixel or count >= 254 or i+1 == len(pixels):
+            if count > 1 or current_pixel[0] == 0x00:
                 #print("compressed", count)
                 compressed_data.append(0x00)
                 compressed_data.extend(count.to_bytes(1,byteorder='little',signed=False))
@@ -68,13 +68,14 @@ def decode_bitmap(data):
     image_data = bytearray(data[dataStart:])
     return(header,image_data)
 
-filename = r"C:\Users\simon\Desktop\s2.bmp"
+filename = r"C:\Users\simon\Desktop\s3.bmp"
 bitmap = bytearray(open_file(filename))
 bitmap = decode_bitmap(bitmap)
 #print("header")
 #print(bitmap[0].hex())
 #print("data")
 #print(bitmap[1].hex())
+bitmap[0][1] = ord("C")
 compressed_data = compress(bitmap[1])
 bitmap = bitmap[0] + compressed_data
 save_file(filename+"c", bitmap)
