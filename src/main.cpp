@@ -1,6 +1,10 @@
 #include "Arduino.h"
 #include <FastLED.h>
 
+//TODO: define a framebuffer to unpack to at launch
+//TODO: decoding for BMPA (new animated bitmap with 24bit rle)
+//TODO: flash memory chip support (will need 4k sector buffer)
+
 //only once choice here, it has to be pin17 as thats the only 5v pin on the teensy lc
 #define ControlPin 17
 
@@ -155,6 +159,10 @@ void bitmap_load_and_render(unsigned char *bitmap_data){
   uint32_t size;
   memcpy(&size,&bitmap_data[2],4);
   Serial.println(size);
+	// read dimentions, use these to process the image (remove padding) and decide how to display it
+	// width, 0x12 4 bytes
+	// hight, 0x16 4 bytes
+	// read colour depth and reject if not 24, 0x1C 2 bytes
   // read start of data
   uint32_t dataStart;
   memcpy(&dataStart,&bitmap_data[10],4);

@@ -6,6 +6,9 @@
 # 1 header with the number of frames will be stored, the frames will be seperated with 0x00 0x00 (an error in the RLE encoding)
 # to mark the frame end
 
+# TODO: BMPA, BMPC with animation support, use the 2 unused bitmap values at 06 and 08 (both 2 bytes) to define frame no and frame time
+#       this program should be able to convert animated GIF's to this format
+
 import struct
 
 def open_file(filename):
@@ -56,6 +59,10 @@ def compress(data):
         count += 1
     len_end = len(compressed_data)
     print("Original data size:{}, Compressed Data: {}, Space Saved: {}, New image data is {:.2f}% of original".format(len_start, len_end, len_start-len_end, (len_end/len_start)*100))
+    if len_start-len_end < 0:
+        print("Compressed version is bigger than the orgianal! this is problably due to high levels of entropy")
+        print("Exiting program without exporting .bmpc")
+        exit()
     #print(compressed_data.hex())
     return compressed_data
 
@@ -68,7 +75,7 @@ def decode_bitmap(data):
     image_data = bytearray(data[dataStart:])
     return(header,image_data)
 
-filename = r"C:\Users\simon\Desktop\s3.bmp"
+filename = r"..\res\TestScreen Original.bmp"
 bitmap = bytearray(open_file(filename))
 bitmap = decode_bitmap(bitmap)
 #print("header")
